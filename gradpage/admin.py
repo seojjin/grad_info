@@ -1,3 +1,9 @@
 from django.contrib import admin
+from gradpage.models import Department, Display_info, Major, Archive
 
-# Register your models here.
+
+
+admin.site.register(Department)
+admin.site.register(Major)
+admin.site.register(Archive)
+admin.site.register(Display_info)
