@@ -21,6 +21,8 @@ class Display_info(models.Model):
 
 class Archive(models.Model):
     title=models.TextField(max_length=100)
+    team_name = models.CharField(max_length=30, default='')
+    team_member = models.CharField(max_length=100, default='')
     description=models.TextField()
     image = models.ImageField(upload_to='gradpage/images/%Y/%m/%d/')
 
