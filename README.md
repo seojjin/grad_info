@@ -1,1 +1,2 @@
-# grad_info
+# bangyewon
+# bye
