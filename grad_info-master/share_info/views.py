@@ -1,21 +1,22 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.utils import timezone
 from django.urls import reverse
-from .models import Board
+from .models import info
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
-from .forms import BoardForm
+from .forms import infoForm
 from django.core.exceptions import PermissionDenied
+f
 
 def index(request):
-    all_boards = Board.objects.all().order_by("-pub_date")
-    return render(request, 'team_board/index.html', {'title': 'Board List', 'board_list': all_boards})
+    all_infos = info.objects.all().order_by("-pub_date")
+    return render(request, 'share_info/index.html', {'title': 'info List', 'info_list': all_infos})
 
-def detail(request, board_id):
-    board = Board.objects.get(id=board_id)
-    return render(request, 'team_board/detail.html', {'board': board})
+def detail(request, info_id):
+    info = info.objects.get(id=info_id)
+    return render(request, 'share_info/detail.html', {'info': info})
 
 def write(request):
     # 전공(major) 선택을 위한 데이터
@@ -31,9 +32,9 @@ def write(request):
     context = {
         'major_values': major_values
     }
-    return render(request, 'team_board/write.html', context)
+    return render(request, 'share_info/infopost.html', context)
 
-def write_team_board(request):
+def write_info(request):
     if request.method == 'POST':
         title = request.POST.get('title')
         detail = request.POST.get('detail')
@@ -41,40 +42,35 @@ def write_team_board(request):
         author = request.user.username  # 현재 로그인된 사용자의 유저네임
         pub_date = timezone.now()
 
-        b = Board(title=title, content=detail, major=major, author=author, pub_date=pub_date)
+        b = info(title=title, content=detail, major=major, author=author, pub_date=pub_date)
         b.save()
 
     # 게시글 작성 후 게시글 목록 페이지로 이동
-    all_boards = Board.objects.all().order_by("-pub_date")
-    return render(request, 'team_board/index.html', {'title': 'Board List', 'board_list': all_boards})
+    all_infos = info.objects.all().order_by("-pub_date")
+    return render(request, 'share_info/shareinfo.html', {'title': 'info List', 'info_list': all_infos})
 
-def create_reply(request, board_id):
-    board = Board.objects.get(id=board_id)
-    board.replies.create(comment=request.POST['comment'], rep_date=timezone.now())  # 'replies'는 related_name
-    return HttpResponseRedirect(reverse('team_board:detail', args=(board_id,)))
-
-def editboard(request, pk):
+def editinfo(request, pk):
     if request.user.is_authenticated:
-        item = get_object_or_404(Board, pk=pk)
+        item = get_object_or_404(info, pk=pk)
         if request.method == 'POST':
-            board_form = BoardForm(request.POST)
-            if board_form.is_valid():
-                board = board_form.save(board=False)
-                board.item = item
-                board.author = request.user
-                board.save()
-                return redirect(board.get_absolute_url())
+            info_form = infoForm(request.POST)
+            if info_form.is_valid():
+                info = info_form.save(info=False)
+                info.item = item
+                info.author = request.user
+                info.save()
+                return redirect(info.get_absolute_url())
         else:
             return redirect(item.get_absolute_url())
     else:
         raise PermissionDenied
 
-class BoardUpdate(LoginRequiredMixin, UpdateView):
-    model = Board
-    form_class = BoardForm
+class infoUpdate(LoginRequiredMixin, UpdateView):
+    model = info
+    form_class = infoForm
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and request.user == self.get_object().author:
-            return super(BoardUpdate, self).dispatch(request, *args, **kwargs)
+            return super(infoUpdate, self).dispatch(request, *args, **kwargs)
         else:
             raise PermissionDenied
